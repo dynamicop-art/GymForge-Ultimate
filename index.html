@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0f14" />
+  <meta name="description" content="GymForge - all-in-one lean bulk, workout, nutrition, progress and trainer app." />
+  <title>GymForge — Lean Bulk HQ</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-wrap">
+        <div class="brand-mark">GF</div>
+        <div><h1>GymForge</h1><p>Lean Bulk HQ</p></div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <button class="nav-item active" data-view="dashboard"><span>⌂</span>Dashboard</button>
+        <button class="nav-item" data-view="workout"><span>🏋</span>Workout</button>
+        <button class="nav-item" data-view="nutrition"><span>🥗</span>Nutrition</button>
+        <button class="nav-item" data-view="progress"><span>📈</span>Progress</button>
+        <button class="nav-item" data-view="notes"><span>📝</span>Notes</button>
+        <button class="nav-item" data-view="trainer"><span>🧑‍🏫</span>Trainer Mode</button>
+        <button class="nav-item" data-view="settings"><span>⚙</span>Settings</button>
+      </nav>
+
+      <div class="sidebar-card">
+        <div class="mini-label">CURRENT GOAL</div>
+        <div class="goal-title">Lean Bulk</div>
+        <div class="progress-line"><span id="sidebarGoalProgress"></span></div>
+        <div class="row-between muted tiny"><span id="sidebarWeight">57 kg</span><span id="sidebarTarget">60 kg</span></div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="ghost small" id="installBtn">Install App</button>
+        <span class="status-dot" id="syncDot"></span><span id="syncText">Local mode</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn mobile-only" id="menuBtn">☰</button>
+        <div>
+          <div class="eyebrow" id="todayLabel"></div>
+          <h2 id="pageTitle">Dashboard</h2>
+        </div>
+        <div class="top-actions">
+          <button class="ghost" id="restTimerBtn">⏱ Rest Timer</button>
+          <button class="avatar" id="profileQuickBtn">VM</button>
+        </div>
+      </header>
+
+      <section id="view-dashboard" class="view active">
+        <div class="hero-grid">
+          <div class="hero-card">
+            <div class="hero-copy">
+              <span class="pill">LEAN BULK MODE</span>
+              <h3>Build muscle.<br/>Track everything.</h3>
+              <p>Your training, Bengali diet, recovery, notes and progress — all in one place.</p>
+              <div class="hero-actions">
+                <button class="primary" data-jump="workout">Start today's workout</button>
+                <button class="ghost" data-jump="nutrition">Log meal</button>
+              </div>
+            </div>
+            <div class="hero-stat">
+              <span class="mini-label">CURRENT</span>
+              <strong id="heroWeight">57.0</strong><small>kg</small>
+              <div class="hero-ring" id="heroRing"><span id="heroPercent">0%</span></div>
+            </div>
+          </div>
+
+          <div class="card recovery-card">
+            <div class="card-head"><div><span class="mini-label">RECOVERY</span><h3>Readiness</h3></div><span class="score good" id="readinessScore">82</span></div>
+            <div class="metric-list">
+              <div><span>Sleep</span><b id="sleepDisplay">8h</b></div>
+              <div><span>Water</span><b id="waterDisplay">2.2 / 3.0L</b></div>
+              <div><span>Training streak</span><b id="streakDisplay">0 days</b></div>
+            </div>
+            <button class="soft full" id="recoveryEditBtn">Update recovery</button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><span>Daily calories</span><strong><b id="dashCalories">0</b> / <small id="dashCalTarget">2450</small></strong><div class="bar"><i id="calBar"></i></div></div>
+          <div class="stat-card"><span>Protein</span><strong><b id="dashProtein">0g</b> / <small id="dashProteinTarget">105g</small></strong><div class="bar"><i id="proteinBar"></i></div></div>
+          <div class="stat-card"><span>Workouts this week</span><strong><b id="dashWorkouts">0</b> / <small>6</small></strong><div class="bar"><i id="workoutBar"></i></div></div>
+          <div class="stat-card"><span>Weight change</span><strong id="dashWeightChange">0.0 kg</strong><p class="tiny muted">from first logged weight</p></div>
+        </div>
+
+        <div class="content-grid two-one">
+          <div class="card">
+            <div class="card-head"><div><span class="mini-label">TODAY</span><h3 id="todayWorkoutTitle">Workout</h3></div><button class="text-btn" data-jump="workout">Open →</button></div>
+            <div id="todayWorkoutPreview" class="workout-preview"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><span class="mini-label">WEIGHT TREND</span><h3>Last 8 entries</h3></div></div>
+            <canvas id="weightMiniChart" height="170"></canvas>
+          </div>
+        </div>
+
+        <div class="content-grid three">
+          <div class="card quick-card"><span class="icon-box">⚡</span><h3>Quick PR</h3><p>Log a new personal record.</p><button class="soft" id="quickPrBtn">Add PR</button></div>
+          <div class="card quick-card"><span class="icon-box">⚖</span><h3>Check-in</h3><p>Log today's body weight.</p><button class="soft" id="quickWeightBtn">Add weight</button></div>
+          <div class="card quick-card"><span class="icon-box">🧠</span><h3>Training note</h3><p>Save form cues or observations.</p><button class="soft" id="quickNoteBtn">Write note</button></div>
+        </div>
+      </section>
+
+      <section id="view-workout" class="view">
+        <div class="section-actions">
+          <div><span class="mini-label">6-DAY PPL × 2</span><h3 id="workoutDayHeading">Today's session</h3></div>
+          <div class="segmented" id="workoutDayPicker"></div>
+        </div>
+        <div class="workout-layout">
+          <div class="card">
+            <div id="exerciseList"></div>
+            <button class="primary full" id="finishWorkoutBtn">Finish workout</button>
+          </div>
+          <div class="side-stack">
+            <div class="card">
+              <span class="mini-label">SESSION</span>
+              <div class="big-timer" id="sessionTimer">00:00</div>
+              <div class="row gap"><button class="soft flex" id="sessionStartBtn">Start</button><button class="ghost flex" id="sessionResetBtn">Reset</button></div>
+            </div>
+            <div class="card">
+              <span class="mini-label">PROGRESSIVE OVERLOAD</span>
+              <h3>Rule</h3><p class="muted">Hit the top of the rep range with clean form and ~1–2 reps in reserve, then add a small amount of weight next time.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-nutrition" class="view">
+        <div class="section-actions">
+          <div><span class="mini-label">BENGALI LEAN BULK</span><h3>Daily nutrition</h3></div>
+          <button class="primary" id="addMealBtn">+ Log food</button>
+        </div>
+        <div class="stats-grid macros">
+          <div class="stat-card"><span>Calories</span><strong><b id="nutCal">0</b><small> / 2450 kcal</small></strong><div class="bar"><i id="nutCalBar"></i></div></div>
+          <div class="stat-card"><span>Protein</span><strong><b id="nutProtein">0</b><small> / 105 g</small></strong><div class="bar"><i id="nutProteinBar"></i></div></div>
+          <div class="stat-card"><span>Carbs</span><strong><b id="nutCarbs">0</b><small> / 330 g</small></strong><div class="bar"><i id="nutCarbsBar"></i></div></div>
+          <div class="stat-card"><span>Fat</span><strong><b id="nutFat">0</b><small> / 65 g</small></strong><div class="bar"><i id="nutFatBar"></i></div></div>
+        </div>
+        <div class="content-grid two-one">
+          <div class="card">
+            <div class="card-head"><div><span class="mini-label">TODAY'S LOG</span><h3>Food diary</h3></div><button class="text-btn" id="clearMealsBtn">Clear day</button></div>
+            <div id="mealLog" class="list"></div>
+          </div>
+          <div class="card">
+            <span class="mini-label">YOUR DEFAULT PLAN</span><h3>Budget Bengali meals</h3>
+            <div id="dietPlan" class="meal-plan"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-progress" class="view">
+        <div class="section-actions">
+          <div><span class="mini-label">BODY & STRENGTH</span><h3>Progress center</h3></div>
+          <div class="row gap"><button class="soft" id="addMeasureBtn">+ Measurements</button><button class="primary" id="addWeightBtn">+ Weight</button></div>
+        </div>
+        <div class="content-grid two">
+          <div class="card"><div class="card-head"><div><span class="mini-label">BODY WEIGHT</span><h3>Trend</h3></div></div><canvas id="weightChart" height="240"></canvas></div>
+          <div class="card"><div class="card-head"><div><span class="mini-label">MEASUREMENTS</span><h3>Latest</h3></div></div><div id="measurementGrid" class="measure-grid"></div></div>
+        </div>
+        <div class="content-grid two">
+          <div class="card"><div class="card-head"><div><span class="mini-label">PERSONAL RECORDS</span><h3>PR board</h3></div><button class="text-btn" id="addPrBtn">+ Add</button></div><div id="prList" class="list"></div></div>
+          <div class="card"><div class="card-head"><div><span class="mini-label">WEIGH-INS</span><h3>History</h3></div></div><div id="weightHistory" class="list"></div></div>
+        </div>
+      </section>
+
+      <section id="view-notes" class="view">
+        <div class="section-actions"><div><span class="mini-label">YOUR SECOND BRAIN</span><h3>Gym notes</h3></div><button class="primary" id="addNoteBtn">+ New note</button></div>
+        <div id="notesGrid" class="notes-grid"></div>
+      </section>
+
+      <section id="view-trainer" class="view">
+        <div class="section-actions">
+          <div><span class="mini-label">TRAINER MODE</span><h3>Client dashboard</h3></div><button class="primary" id="addClientBtn">+ Add client</button>
+        </div>
+        <div class="trainer-summary stats-grid">
+          <div class="stat-card"><span>Clients</span><strong id="clientCount">0</strong></div>
+          <div class="stat-card"><span>Check-ins due</span><strong id="checkinsDue">0</strong></div>
+          <div class="stat-card"><span>Plans active</span><strong id="plansActive">0</strong></div>
+          <div class="stat-card"><span>Coach note</span><strong class="small-strong">Keep cues simple.</strong></div>
+        </div>
+        <div class="content-grid two-one">
+          <div class="card"><div class="card-head"><div><span class="mini-label">CLIENTS</span><h3>Roster</h3></div></div><div id="clientList" class="list"></div></div>
+          <div class="card"><span class="mini-label">PLAN BUILDER</span><h3>Assign a quick plan</h3><form id="planBuilderForm" class="form-stack"><select id="planClient"></select><input id="planName" placeholder="Plan name, e.g. Lean Bulk PPL" required><textarea id="planText" rows="8" placeholder="Plan details..." required></textarea><button class="soft full" type="submit">Save plan</button></form></div>
+        </div>
+      </section>
+
+      <section id="view-settings" class="view">
+        <div class="content-grid two">
+          <div class="card">
+            <span class="mini-label">PROFILE</span><h3>Body & targets</h3>
+            <form id="profileForm" class="form-grid">
+              <label>Name<input id="profileName" required></label>
+              <label>Weight (kg)<input id="profileWeight" type="number" step="0.1" required></label>
+              <label>Height (cm)<input id="profileHeight" type="number" required></label>
+              <label>Target weight (kg)<input id="profileTarget" type="number" step="0.1" required></label>
+              <label>Calories<input id="profileCalories" type="number" required></label>
+              <label>Protein (g)<input id="profileProtein" type="number" required></label>
+              <label>Carbs (g)<input id="profileCarbs" type="number" required></label>
+              <label>Fat (g)<input id="profileFat" type="number" required></label>
+              <button class="primary span-2" type="submit">Save profile</button>
+            </form>
+          </div>
+          <div class="card">
+            <span class="mini-label">DATA</span><h3>Backup & sync</h3>
+            <p class="muted">Local mode stores everything in this browser. Connect Firebase to sync across devices.</p>
+            <div class="stack-buttons"><button class="soft" id="exportBtn">Export JSON backup</button><label class="soft file-btn">Import JSON<input type="file" id="importInput" accept="application/json"></label><button class="ghost danger" id="resetBtn">Reset local data</button></div>
+            <hr><span class="mini-label">FIREBASE</span><p class="muted tiny">Add your Firebase web config in <code>firebase-config.js</code>. Email/password sign-in is supported by the included cloud adapter.</p>
+            <div class="auth-box"><input id="authEmail" type="email" placeholder="Email"><input id="authPassword" type="password" placeholder="Password"><div class="row gap"><button class="soft flex" id="signupBtn">Sign up</button><button class="primary flex" id="loginBtn">Log in</button></div><button class="ghost full" id="logoutBtn">Log out</button></div>
+          </div>
+        </div>
+        <div class="card"><span class="mini-label">HEALTH NOTE</span><p class="muted">This app is for general fitness tracking, not medical diagnosis. Adjust training and diet for injuries, medical conditions, or clinician advice.</p></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="modal"><form method="dialog" class="modal-card" id="modalForm"><div class="modal-head"><h3 id="modalTitle">Add</h3><button class="icon-btn" value="cancel">✕</button></div><div id="modalBody"></div><div class="modal-actions"><button class="ghost" value="cancel">Cancel</button><button class="primary" id="modalSaveBtn" value="default">Save</button></div></form></dialog>
+
+  <dialog id="restDialog"><div class="modal-card rest-modal"><div class="modal-head"><h3>Rest timer</h3><button class="icon-btn" id="restCloseBtn">✕</button></div><div class="rest-display" id="restDisplay">01:30</div><div class="segmented"><button data-rest="60">60s</button><button class="active" data-rest="90">90s</button><button data-rest="120">120s</button><button data-rest="180">180s</button></div><div class="row gap"><button class="primary flex" id="restStartBtn">Start</button><button class="ghost flex" id="restResetBtn">Reset</button></div></div></dialog>
+
+  <script src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
