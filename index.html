@@ -137,7 +137,10 @@
       <section id="view-nutrition" class="view">
         <div class="section-actions">
           <div><span class="mini-label">BENGALI LEAN BULK</span><h3>Daily nutrition</h3></div>
-          <button class="primary" id="addMealBtn">+ Log food</button>
+          <div class="row gap nutrition-actions">
+            <button class="soft" id="aiFoodBtn">📸 AI Food Scan</button>
+            <button class="primary" id="addMealBtn">+ Log food</button>
+          </div>
         </div>
         <div class="stats-grid macros">
           <div class="stat-card"><span>Calories</span><strong><b id="nutCal">0</b><small> / 2450 kcal</small></strong><div class="bar"><i id="nutCalBar"></i></div></div>
@@ -145,6 +148,35 @@
           <div class="stat-card"><span>Carbs</span><strong><b id="nutCarbs">0</b><small> / 330 g</small></strong><div class="bar"><i id="nutCarbsBar"></i></div></div>
           <div class="stat-card"><span>Fat</span><strong><b id="nutFat">0</b><small> / 65 g</small></strong><div class="bar"><i id="nutFatBar"></i></div></div>
         </div>
+        <div class="content-grid two coach-grid">
+          <div class="card coach-card">
+            <div class="card-head">
+              <div><span class="mini-label">SMART NUTRITION COACH</span><h3>What is left today?</h3></div>
+              <span class="score good" id="coachScore">—</span>
+            </div>
+            <div id="coachRemaining" class="coach-remaining"></div>
+            <p id="coachMessage" class="coach-message muted"></p>
+            <div id="coachSuggestions" class="coach-suggestions"></div>
+            <div class="row gap coach-actions">
+              <button class="soft flex" id="coachRefreshBtn">↻ Refresh suggestions</button>
+              <button class="ghost flex" id="enableNotifyBtn">🔔 Enable alerts</button>
+            </div>
+            <p class="tiny muted coach-footnote">Food and nutrition values are estimates. Confirm portions and ingredients when accuracy matters.</p>
+          </div>
+          <div class="card ai-explainer">
+            <span class="mini-label">AI FOOD SCANNER</span>
+            <h3>Photo → macros → log</h3>
+            <p class="muted">Take a photo, enter the total edible weight, let AI estimate each visible food, then review and add it to today's diary.</p>
+            <div class="ai-steps">
+              <div><b>1</b><span>Take/upload food photo</span></div>
+              <div><b>2</b><span>Enter total weight in grams</span></div>
+              <div><b>3</b><span>Review AI estimate</span></div>
+              <div><b>4</b><span>Add to today's macros</span></div>
+            </div>
+            <button class="primary full" id="aiFoodBtn2">Open AI Food Scanner</button>
+          </div>
+        </div>
+
         <div class="content-grid two-one">
           <div class="card">
             <div class="card-head"><div><span class="mini-label">TODAY'S LOG</span><h3>Food diary</h3></div><button class="text-btn" id="clearMealsBtn">Clear day</button></div>
@@ -217,16 +249,82 @@
             <div class="auth-box"><input id="authEmail" type="email" placeholder="Email"><input id="authPassword" type="password" placeholder="Password"><div class="row gap"><button class="soft flex" id="signupBtn">Sign up</button><button class="primary flex" id="loginBtn">Log in</button></div><button class="ghost full" id="logoutBtn">Log out</button></div>
           </div>
         </div>
-        <div class="card"><span class="mini-label">HEALTH NOTE</span><p class="muted">This app is for general fitness tracking, not medical diagnosis. Adjust training and diet for injuries, medical conditions, or clinician advice.</p></div>
+        <div class="card">
+          <span class="mini-label">AI & ALERTS</span><h3>Food scanner connection</h3>
+          <p class="muted">GymForge sends food images to your private Cloudflare Worker. Your Gemini API key stays inside the Worker secret and is never stored in this website.</p>
+          <div class="status-row"><span>AI backend</span><b id="aiBackendStatus">Checking…</b></div>
+          <div class="status-row"><span>Nutrition alerts</span><b id="notificationStatus">Not enabled</b></div>
+          <div class="row gap settings-actions"><button class="soft" id="testAiBtn">Test AI connection</button><button class="ghost" id="settingsNotifyBtn">Enable notifications</button></div>
+        </div>
+        <div class="card"><span class="mini-label">HEALTH NOTE</span><p class="muted">This app is for general fitness tracking, not medical diagnosis. AI food estimates can be wrong, especially for oil, gravy and mixed dishes. Review results before saving.</p></div>
       </section>
     </main>
   </div>
 
   <dialog id="modal"><form method="dialog" class="modal-card" id="modalForm"><div class="modal-head"><h3 id="modalTitle">Add</h3><button class="icon-btn" value="cancel">✕</button></div><div id="modalBody"></div><div class="modal-actions"><button class="ghost" value="cancel">Cancel</button><button class="primary" id="modalSaveBtn" value="default">Save</button></div></form></dialog>
 
+  <dialog id="aiDialog">
+    <div class="modal-card ai-modal">
+      <div class="modal-head">
+        <div><span class="mini-label">GYMFORGE AI</span><h3>Food Scanner</h3></div>
+        <button class="icon-btn" id="aiCloseBtn">✕</button>
+      </div>
+
+      <div class="ai-scan-grid">
+        <div>
+          <label class="upload-zone" id="aiUploadZone">
+            <input type="file" id="aiImageInput" accept="image/jpeg,image/png,image/webp" capture="environment">
+            <span class="upload-icon">📷</span>
+            <b>Take photo / choose image</b>
+            <small>JPG, PNG or WEBP</small>
+          </label>
+          <img id="aiImagePreview" class="ai-image-preview" alt="Selected food preview">
+        </div>
+
+        <div class="form-stack ai-controls">
+          <label>Total edible weight (g)<input id="aiWeightInput" type="number" min="1" max="5000" inputmode="decimal" placeholder="e.g. 350"></label>
+          <p class="tiny muted">For a mixed plate, enter the approximate total food weight excluding the plate/bowl.</p>
+          <button class="primary full" id="aiAnalyzeBtn">✨ Analyze nutrition</button>
+          <div id="aiLoading" class="ai-loading" hidden><span></span> AI is analyzing the plate…</div>
+        </div>
+      </div>
+
+      <div id="aiResult" class="ai-result" hidden>
+        <div class="ai-result-head">
+          <div><span class="mini-label">DETECTED MEAL</span><h3 id="aiDetectedName">—</h3></div>
+          <span class="pill" id="aiConfidence">—</span>
+        </div>
+
+        <div class="ai-edit-grid">
+          <label>Meal name<input id="aiEditName"></label>
+          <label>Calories<input id="aiEditCal" type="number" step="1"></label>
+          <label>Protein (g)<input id="aiEditProtein" type="number" step="0.1"></label>
+          <label>Carbs (g)<input id="aiEditCarbs" type="number" step="0.1"></label>
+          <label>Fat (g)<input id="aiEditFat" type="number" step="0.1"></label>
+          <label>Fiber (g)<input id="aiEditFiber" type="number" step="0.1"></label>
+        </div>
+
+        <div class="ai-result-section">
+          <span class="mini-label">VISIBLE FOODS</span>
+          <div id="aiItems" class="ai-items"></div>
+        </div>
+        <div class="ai-result-section">
+          <span class="mini-label">AI ASSUMPTIONS</span>
+          <ul id="aiAssumptions" class="ai-assumptions"></ul>
+        </div>
+
+        <div class="modal-actions">
+          <button class="ghost" id="aiScanAgainBtn">Scan another</button>
+          <button class="primary" id="aiAddMealBtn">+ Add to today's diet</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="restDialog"><div class="modal-card rest-modal"><div class="modal-head"><h3>Rest timer</h3><button class="icon-btn" id="restCloseBtn">✕</button></div><div class="rest-display" id="restDisplay">01:30</div><div class="segmented"><button data-rest="60">60s</button><button class="active" data-rest="90">90s</button><button data-rest="120">120s</button><button data-rest="180">180s</button></div><div class="row gap"><button class="primary flex" id="restStartBtn">Start</button><button class="ghost flex" id="restResetBtn">Reset</button></div></div></dialog>
 
   <script src="firebase-config.js"></script>
+  <script src="ai-config.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

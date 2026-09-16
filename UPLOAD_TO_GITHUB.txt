@@ -1,0 +1,14 @@
+GYMFORGE V2 - QUICK UPLOAD
+
+1. Extract GymForge-Ultimate-V2.zip.
+2. Open GitHub > your GymForge-Ultimate repository.
+3. Replace the OLD files with ALL files from the extracted folder.
+4. Keep the files at repo ROOT (not inside another folder).
+5. Commit changes.
+6. Wait 1-3 minutes.
+7. Open your GitHub Pages website and refresh.
+
+IMPORTANT:
+- Do NOT upload your Gemini API key anywhere.
+- ai-config.js contains only the public Worker URL. That is safe.
+- cloudflare-worker.js contains no secret. Your real API key remains in Cloudflare Secret: GEMINI_API_KEY.

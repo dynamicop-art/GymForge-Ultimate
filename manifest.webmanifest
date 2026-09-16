@@ -1,9 +1,10 @@
 {
-  "name":"GymForge — Lean Bulk HQ",
-  "short_name":"GymForge",
-  "start_url":"./",
-  "display":"standalone",
-  "background_color":"#080b10",
-  "theme_color":"#0b0f14",
-  "description":"Workout, Bengali diet, progress, notes and trainer dashboard."
+  "name": "GymForge — Lean Bulk HQ",
+  "short_name": "GymForge",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080b10",
+  "theme_color": "#0b0f14",
+  "description": "Workout, Bengali lean-bulk diet, AI food scanning, smart nutrition coaching, progress, notes and trainer dashboard."
 }
