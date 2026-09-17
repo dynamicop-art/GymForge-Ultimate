@@ -6,6 +6,7 @@ const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 const fmtDate = (date) => new Date(date + 'T00:00:00').toLocaleDateString(undefined, { day: '2-digit', month: 'short' });
 const STORE = 'gymforge_v2';
 const AI_ENDPOINT = String(window.GYMFORGE_AI_ENDPOINT || 'https://gymforge-ai.arpanalaps64.workers.dev').replace(/\/$/, '');
+const IS_NATIVE_ANDROID = Boolean(window.AndroidGymForge);
 
 const workoutPlan = [
   { name: 'Push A', focus: 'Chest + Shoulder + Triceps', ex: [['Bench Press', 4, '6–8'], ['Incline DB Press', 3, '8–10'], ['Shoulder Press', 3, '8–10'], ['Lateral Raise', 3, '12–15'], ['Triceps Pushdown', 3, '10–12']] },
@@ -634,19 +635,57 @@ async function testAiConnection(showToast = true) {
 
 // ---------------- NUTRITION ALERTS ----------------
 function notificationPermission() {
+  if (IS_NATIVE_ANDROID) {
+    try { return window.AndroidGymForge.getNotificationPermission(); }
+    catch { return 'prompt'; }
+  }
   if (!('Notification' in window)) return 'unsupported';
   return Notification.permission;
 }
 
 function updateNotificationStatus() {
   const status = notificationPermission();
-  const label = status === 'granted' ? 'Enabled ✓' : status === 'denied' ? 'Blocked in browser' : status === 'unsupported' ? 'Not supported' : 'Not enabled';
+  const label = status === 'granted'
+    ? (IS_NATIVE_ANDROID ? 'Native alerts enabled ✓' : 'Enabled ✓')
+    : status === 'denied' ? 'Blocked in device settings'
+    : status === 'unsupported' ? 'Not supported'
+    : 'Not enabled';
   if ($('#notificationStatus')) $('#notificationStatus').textContent = label;
+  if ($('#appModeStatus')) $('#appModeStatus').textContent = IS_NATIVE_ANDROID ? 'Android app ✓' : 'Web / PWA';
   if ($('#enableNotifyBtn')) $('#enableNotifyBtn').textContent = status === 'granted' ? '🔔 Alerts enabled' : '🔔 Enable alerts';
   if ($('#settingsNotifyBtn')) $('#settingsNotifyBtn').textContent = status === 'granted' ? 'Notifications enabled' : 'Enable notifications';
 }
 
+window.__gymforgeNativePermissionResult = function(permission) {
+  updateNotificationStatus();
+  if (permission === 'granted') {
+    try { window.AndroidGymForge.scheduleDefaultCoachReminders(); } catch {}
+    syncNativeCoachState();
+    toast('Native coach alerts enabled');
+    sendCoachNotification(true);
+  } else {
+    toast('Notification permission was not enabled');
+  }
+};
+
 async function enableNotifications() {
+  if (IS_NATIVE_ANDROID) {
+    try {
+      const current = window.AndroidGymForge.getNotificationPermission();
+      if (current === 'granted') {
+        window.AndroidGymForge.scheduleDefaultCoachReminders();
+        syncNativeCoachState();
+        updateNotificationStatus();
+        toast('Native coach alerts are enabled');
+        sendCoachNotification(true);
+      } else {
+        window.AndroidGymForge.requestNotificationPermission();
+      }
+    } catch {
+      toast('Could not open Android notification permission');
+    }
+    return;
+  }
   if (!('Notification' in window)) return toast('Notifications are not supported in this browser');
   const permission = await Notification.requestPermission();
   updateNotificationStatus();
@@ -660,22 +699,56 @@ function coachNotificationText() {
   const coach = coachAdvice();
   const r = coach.remaining;
   const suggestion = coach.suggestions[0];
-  if (r.rawCal <= 0 && r.rawProtein <= 0) return 'Calories and protein are covered for today.';
+  if (r.rawCal <= 0 && r.rawProtein <= 0) return 'Calories and protein are covered for today. Great job — focus on recovery.';
   return `About ${Math.round(r.cal)} kcal & ${Math.round(r.protein)} g protein left. Easy option: ${suggestion?.name || 'check Smart Coach'}.`;
 }
 
+function syncNativeCoachState() {
+  if (!IS_NATIVE_ANDROID) return;
+  try {
+    const coach = coachAdvice();
+    const r = coach.remaining;
+    const suggestion = coach.suggestions[0];
+    window.AndroidGymForge.syncCoachState(JSON.stringify({
+      date: todayKey(),
+      caloriesLeft: Math.round(r.cal),
+      proteinLeft: Math.round(r.protein),
+      carbsLeft: Math.round(r.carbs),
+      fatLeft: Math.round(r.fat),
+      targetCovered: r.rawCal <= 0 && r.rawProtein <= 0,
+      suggestion: suggestion?.name || 'Open GymForge Smart Coach',
+      body: coachNotificationText(),
+      updatedAt: Date.now()
+    }));
+  } catch {}
+}
+
 function sendCoachNotification(force = false) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
   const coach = coachAdvice();
   if (!force && coach.remaining.cal < 250 && coach.remaining.protein < 12) return;
+
+  if (IS_NATIVE_ANDROID) {
+    try {
+      if (window.AndroidGymForge.getNotificationPermission() === 'granted') {
+        window.AndroidGymForge.showNotification('GymForge Nutrition Coach', coachNotificationText());
+      }
+    } catch {}
+    return;
+  }
+
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
   try {
     new Notification('GymForge Nutrition Coach', { body: coachNotificationText(), tag: 'gymforge-nutrition' });
   } catch {
-    // Some embedded browsers block the Notification constructor.
+    // Some browsers block the Notification constructor.
   }
 }
 
 function maybeAutoNutritionNotification() {
+  if (IS_NATIVE_ANDROID) {
+    syncNativeCoachState();
+    return; // Native alarms handle closed-app reminders.
+  }
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
   const hour = new Date().getHours();
   if (hour < 19) return;
@@ -722,6 +795,7 @@ $('#aiScanAgainBtn').onclick = () => resetAiScanner(true);
 $('#testAiBtn').onclick = () => testAiConnection(true);
 $('#enableNotifyBtn').onclick = enableNotifications;
 $('#settingsNotifyBtn').onclick = enableNotifications;
+if ($('#testNotifyBtn')) $('#testNotifyBtn').onclick = () => sendCoachNotification(true);
 $('#coachRefreshBtn').onclick = () => {
   state.settings.coachSuggestionOffset = ((state.settings.coachSuggestionOffset || 0) + 1) % coachFoods.length;
   save({ silent: true });
@@ -1011,3 +1085,4 @@ renderRest();
 initFirebase();
 testAiConnection(false);
 maybeAutoNutritionNotification();
+if (IS_NATIVE_ANDROID) { syncNativeCoachState(); try { if (window.AndroidGymForge.getNotificationPermission() === 'granted') window.AndroidGymForge.scheduleDefaultCoachReminders(); } catch {} }

@@ -253,8 +253,10 @@
           <span class="mini-label">AI & ALERTS</span><h3>Food scanner connection</h3>
           <p class="muted">GymForge sends food images to your private Cloudflare Worker. Your Gemini API key stays inside the Worker secret and is never stored in this website.</p>
           <div class="status-row"><span>AI backend</span><b id="aiBackendStatus">Checking…</b></div>
+          <div class="status-row"><span>App mode</span><b id="appModeStatus">Web / PWA</b></div>
           <div class="status-row"><span>Nutrition alerts</span><b id="notificationStatus">Not enabled</b></div>
-          <div class="row gap settings-actions"><button class="soft" id="testAiBtn">Test AI connection</button><button class="ghost" id="settingsNotifyBtn">Enable notifications</button></div>
+          <div class="row gap settings-actions"><button class="soft" id="testAiBtn">Test AI connection</button><button class="ghost" id="settingsNotifyBtn">Enable notifications</button><button class="soft" id="testNotifyBtn">Test notification</button></div>
+          <p class="tiny muted">Android app mode schedules native Smart Coach checks at 1:30 PM, 6:30 PM and 9:30 PM. They can appear even when GymForge is closed.</p>
         </div>
         <div class="card"><span class="mini-label">HEALTH NOTE</span><p class="muted">This app is for general fitness tracking, not medical diagnosis. AI food estimates can be wrong, especially for oil, gravy and mixed dishes. Review results before saving.</p></div>
       </section>
