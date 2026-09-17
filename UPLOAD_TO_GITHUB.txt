@@ -12,3 +12,9 @@ IMPORTANT:
 - Do NOT upload your Gemini API key anywhere.
 - ai-config.js contains only the public Worker URL. That is safe.
 - cloudflare-worker.js contains no secret. Your real API key remains in Cloudflare Secret: GEMINI_API_KEY.
+
+
+LOGO:
+Upload your own image to the repository root with the exact filename: logo.jpg
+The app will automatically use it as the GymForge logo.
+If logo.jpg is missing, the GF fallback remains available.

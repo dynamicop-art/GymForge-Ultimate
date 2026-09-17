@@ -15,8 +15,9 @@
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="brand-wrap">
-        <div class="brand-mark">
-          <img src="logo.jpg" alt="GymForge Logo">
+        <div class="brand-mark" id="brandMark">
+          <span class="brand-fallback">GF</span>
+          <img src="logo.jpg" alt="GymForge Logo" onerror="this.style.display='none'; this.previousElementSibling.style.display='grid';">
         </div>
         <div><h1>GymForge</h1><p>Lean Bulk HQ</p></div>
       </div>
